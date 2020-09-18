@@ -5,7 +5,7 @@ import random
 from typing import Dict, List, Union
 
 import discord
-from discord import Colour, Embed
+from discord import Colour, Embed, HTTPException
 from discord.ext.commands import BadArgument, Cog, CommandError, Context, MissingRequiredArgument, command
 
 from bot.constants import ERROR_REPLIES, NEGATIVE_REPLIES
@@ -147,6 +147,8 @@ class Emojify(Cog):
             log.warning(error)
             embed.title = random.choice(ERROR_REPLIES)
             embed.description = "We can't seem find the required emojis. Sorry for the inconvenience."
+        elif isinstance(actual_error, HTTPException) and "Must be 2000 or fewer in length." in actual_error.text:
+            embed.description = "That message is far too long to be sent using emojis."
         elif isinstance(actual_error, MissingRequiredArgument):
             await ctx.send_help(ctx.command)
             return
