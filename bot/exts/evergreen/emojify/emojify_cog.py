@@ -6,7 +6,7 @@ from typing import Dict, List, Union
 
 import discord
 from discord import Colour, Embed
-from discord.ext.commands import BadArgument, Cog, CommandError, Context, command
+from discord.ext.commands import BadArgument, Cog, CommandError, Context, MissingRequiredArgument, command
 
 from bot.constants import ERROR_REPLIES, NEGATIVE_REPLIES
 
@@ -102,7 +102,7 @@ class Emojify(Cog):
     def _add_letter(emoji_list: List[List[str]], letter: str, font: Font, mapping: Dict[str, Emoji]) -> None:
         for row in range(font.font_height):
             if not (letter_data := font.characters.get(letter)):
-                raise BadArgument(f"The character `{letter}` is not supported by the font '{font.name}'")
+                raise BadArgument(f"The character `{letter}` is not supported by the font {font.name}")
             for col in range(len(letter_data[0])):
                 if not (emoji_map := mapping.get(letter_data[row][col])):
                     raise IncompleteConfigurationError(f"The tileset configuration file for '{font.name}' does not "
@@ -111,7 +111,7 @@ class Emojify(Cog):
     # endregion
 
     # region: Commands
-    @command(name='emojify', aliases=('emoji', "emote"), invoke_without_command=True)
+    @command(name='emojify', aliases=('emoji',), invoke_without_command=True)
     async def emojify(self, ctx: Context, tileset: str, *, text: str) -> None:
         """Command that responds with an emoji representation of the input string."""
         font = Font("rundi")
@@ -140,14 +140,16 @@ class Emojify(Cog):
         actual_error = getattr(error, 'original', error)
 
         if isinstance(actual_error, FileNotFoundError):
-            embed.description = "We've looked far and wide, but can't seem to find that tileset/font."
+            embed.description = "We can't seem to find that tileset/font."
         elif isinstance(actual_error, BadArgument):
             embed.description = str(error)
         elif isinstance(actual_error, IncompleteConfigurationError):
             log.warning(error)
-            embed.colour = Colour.red()
             embed.title = random.choice(ERROR_REPLIES)
             embed.description = "We can't seem find the required emojis. Sorry for the inconvenience."
+        elif isinstance(actual_error, MissingRequiredArgument):
+            await ctx.send_help(ctx.command)
+            return
         else:
             log.error(f"Unhandled tag command error: {error}")
             return
