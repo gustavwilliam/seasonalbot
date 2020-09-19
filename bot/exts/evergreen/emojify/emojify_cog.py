@@ -140,33 +140,34 @@ class Emojify(Cog):
                     raise IncompleteConfigurationError(f"The tileset configuration file for '{font.name}' does not "
                                                        f"specify a mapping for the emoji '{letter_data[row][col]}'.")
                 emoji_list[row].append(f"{emoji_map.emoji}")
-    # endregion
 
-    # region: Commands
-    @command(name='emojify', aliases=('emoji',), invoke_without_command=True)
-    async def emojify(self, ctx: Context, tileset: str, *, text: str) -> None:
-        """
-        Command that responds with an emoji representation of the input string.
-
-        Defaults to the font 'Rundi'.
-        """
-        font = Font("rundi")
+    @staticmethod
+    def _emojify(tileset_mapping: Dict[str, Emoji], text: str, font: Font) -> List[List[str]]:
+        """Returns a list of the emojis corresponding to the input text."""
         letter_data: List[List[str]]
-        tileset_mapping: Dict[str, Emoji] = self._tileset(tileset_name=tileset, guild=ctx.guild)
-        emoji_array: List[List[str]] = [[] for _ in range(font.font_height)]
+        emoji_list: List[List[str]] = [[] for _ in range(font.font_height)]
 
         if font.lowercase_only:
             text = text.lower()
 
         for letter in text:
-            self._add_letter(emoji_list=emoji_array, letter=letter, font=font, mapping=tileset_mapping)
+            Emojify._add_letter(emoji_list=emoji_list, letter=letter, font=font, mapping=tileset_mapping)
 
-        emoji_str = self._flatten_list(emoji_array)
-        await ctx.send(emoji_str)
+        return emoji_list
+    # endregion
+
+    # region: Commands
+    @command(name='emojify', aliases=('emoji',), invoke_without_command=True)
+    async def emojify_command(self, ctx: Context, tileset: str, *, text: str) -> None:
+        """Command that responds with an emoji representation of the input string."""
+        tileset_mapping = Emojify._tileset(tileset_name=tileset, guild=ctx.guild)
+        emoji_list = Emojify._emojify(tileset_mapping=tileset_mapping, text=text, font=Font("rundi"))
+
+        await ctx.send(self._flatten_list(emoji_list))
     # endregion
 
     # region: Error handler
-    @emojify.error
+    @emojify_command.error
     async def command_error(self, ctx: Context, error: CommandError) -> None:
         """Local error handler for the emojify cog."""
         embed = Embed()
