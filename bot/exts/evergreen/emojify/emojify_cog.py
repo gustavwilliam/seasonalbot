@@ -141,17 +141,22 @@ class Emojify(Cog):
 
         if isinstance(actual_error, FileNotFoundError):
             embed.description = "We can't seem to find that tileset/font."
+
         elif isinstance(actual_error, BadArgument):
             embed.description = str(error)
+
         elif isinstance(actual_error, IncompleteConfigurationError):
             log.warning(error)
             embed.title = random.choice(ERROR_REPLIES)
-            embed.description = "We can't seem find the required emojis. Sorry for the inconvenience."
+            embed.description = "We can't seem to find the required emojis. Sorry for the inconvenience."
+
         elif isinstance(actual_error, HTTPException) and "Must be 2000 or fewer in length." in actual_error.text:
             embed.description = "That message is far too long to be sent using emojis."
+
         elif isinstance(actual_error, MissingRequiredArgument):
             await ctx.send_help(ctx.command)
             return
+
         else:
             log.error(f"Unhandled tag command error: {error}")
             return
