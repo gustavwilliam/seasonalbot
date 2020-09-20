@@ -1,9 +1,7 @@
 # bot (project-specific)
 log/*
 data/*
-
-
-
+/bot/exts/evergreen/emojify/tilesets/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
