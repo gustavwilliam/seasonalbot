@@ -49,6 +49,9 @@ class Emoji:
 
     def __init__(self, name: str):
         self.name = name  # The emoji identifier used in fonts and files.
+        self.tileset: Tileset
+        self.image_path: str
+        self.image_url: str
 
     def emoji_id(self, guild: Context.guild) -> Union[int, None]:
         """Returns the emoji's ID, relevant to the server the message was sent from."""
@@ -90,9 +93,9 @@ class Tileset:
         self.emojis: Dict[str, Emoji] = {emoji_name: Emoji(name=emoji_name) for emoji_name in EMOJIS}
 
         for emoji in self.emojis.values():  # Set attributes for all child emojis.
-            emoji.tileset: Tileset = self
-            emoji.image_path: str = f"{os.path.dirname(__file__)}/tilesets/{self.name}/{emoji.name}.png"
-            emoji.image_url: str = f"{self.repo_img_url}/dist/{emoji.name}.png"
+            emoji.tileset = self
+            emoji.image_path = f"{os.path.dirname(__file__)}/tilesets/{self.name}/{emoji.name}.png"
+            emoji.image_url = f"{self.repo_img_url}/dist/{emoji.name}.png"
 
         if guild:
             self.load_guild_mappings(guild=guild)
